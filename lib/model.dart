@@ -23,6 +23,7 @@ class Task {
   double dyingStartRadius;
   double dyingInitialW;
   double dyingInitialScale;
+  double dyingInitialP;
   double renderWidth;
 
   Task({
@@ -46,22 +47,30 @@ class Task {
     this.dyingStartRadius = 0,
     this.dyingInitialW = 140,
     this.dyingInitialScale = 1.0,
+    this.dyingInitialP = 0.0,
     this.renderWidth = 140.0,
   });
 
   static const double baseWidth = 140.0;
-  static const double pillHeight = 36.0;
+  static const double pillHeight = 72.0;
 
-  // Scale grows 1.0 → 2.0 starting 20 s after creation.
-  // growthMinutes controls the duration of the growth phase.
-  double pillScale(double growthMinutes) {
-    const delaySeconds = 20.0;
+  // Returns 0.0 (fresh) → 1.0 (at/past deadline).
+  // deadline == null falls back to a 30-minute burn-down with a 20s delay.
+  double pillGrowthFraction(DateTime? deadline) {
     final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final ageSeconds = (nowMs - createdAtMs) / 1000.0;
-    final growthAge = (ageSeconds - delaySeconds).clamp(0.0, double.infinity);
-    final u = (growthAge / (growthMinutes * 60.0)).clamp(0.0, 1.0);
-    final eased = 1.0 - pow(1.0 - u, 1.8);
-    return 1.0 + eased;
+    double u;
+    if (deadline == null) {
+      const delaySeconds = 20.0;
+      final ageSeconds = (nowMs - createdAtMs) / 1000.0;
+      final growthAge = (ageSeconds - delaySeconds).clamp(0.0, double.infinity);
+      u = (growthAge / 1800.0).clamp(0.0, 1.0);
+    } else {
+      final deadlineMs = deadline.millisecondsSinceEpoch;
+      final totalMs = (deadlineMs - createdAtMs).toDouble();
+      if (totalMs <= 0) return 1.0;
+      u = ((nowMs - createdAtMs) / totalMs).clamp(0.0, 1.0);
+    }
+    return (1.0 - pow(1.0 - u, 1.8)).toDouble();
   }
 }
 

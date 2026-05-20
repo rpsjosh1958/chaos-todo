@@ -6,6 +6,8 @@
   <title>Chaos</title>
 
   <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script defer src="main.client.dart.js"></script>
 
   <style>
@@ -51,18 +53,18 @@
       border: 0.5px solid #D0CFC8;
       border-radius: 999px;
       color: #2C2C2A;
-      font-size: 13px;
+      font-size: 26px;
+      font-weight: 700;
       line-height: 1;
-      padding: 11px 18px;
+      padding: 22px 36px;
       white-space: nowrap;
-      min-width: 72px;
-      max-width: 320px;
+      min-width: 120px;
+      max-width: 500px;
       overflow: hidden;
       text-overflow: ellipsis;
       cursor: grab;
       touch-action: none;
-      transition: background 220ms ease, border-color 220ms ease,
-                  box-shadow 220ms ease;
+      transition: border-color 220ms ease, box-shadow 220ms ease;
       will-change: transform;
       transform-origin: center;
       backface-visibility: hidden;
@@ -304,6 +306,219 @@
       -webkit-user-select: none;
       z-index: 90;
       animation: hintFade 3.5s ease forwards;
+    }
+
+    /* ── PiP toggle ────────────────────────────────────────────────── */
+    #pip-toggle {
+      position: fixed;
+      bottom: 60px;
+      left: 80px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(44,44,42,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 70;
+      font-size: 14px;
+      transition: background 180ms ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #pip-toggle:hover { background: rgba(44,44,42,0.15); }
+    #pip-toggle.active { background: rgba(44,44,42,0.20); }
+
+    /* ── Flatpickr theme override ─────────────────────────────────────── */
+    .flatpickr-calendar {
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
+      font-size: 12px;
+      border: 0.5px solid #D0CFC8;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(44,44,42,.12), 0 2px 6px rgba(44,44,42,.07);
+      background: #FFFFFF;
+      padding: 12px;
+      width: auto !important;
+    }
+    .flatpickr-time {
+      border: none !important;
+      height: auto !important;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .flatpickr-time input.flatpickr-hour,
+    .flatpickr-time input.flatpickr-minute,
+    .flatpickr-time input.flatpickr-second {
+      font-size: 28px !important;
+      font-weight: 700 !important;
+      color: #2C2C2A !important;
+      background: transparent;
+      border-radius: 8px;
+      height: 52px !important;
+      width: 52px !important;
+    }
+    .flatpickr-time input:hover, .flatpickr-time input:focus {
+      background: #F1F0EA !important;
+    }
+    .flatpickr-time .flatpickr-time-separator,
+    .flatpickr-time .flatpickr-am-pm {
+      font-size: 20px !important;
+      font-weight: 700 !important;
+      color: #B5B3AB !important;
+    }
+    .flatpickr-time .flatpickr-am-pm {
+      color: #2C2C2A !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      border-radius: 8px;
+      padding: 0 8px !important;
+      width: 40px !important;
+    }
+    .flatpickr-time .flatpickr-am-pm:hover, .flatpickr-time .flatpickr-am-pm:focus {
+      background: #F1F0EA !important;
+    }
+    .flatpickr-time .numInputWrapper span.arrowUp::after { border-bottom-color: #6B6860 !important; }
+    .flatpickr-time .numInputWrapper span.arrowDown::after { border-top-color: #6B6860 !important; }
+    .flatpickr-time .numInputWrapper:hover { background: #F1F0EA !important; }
+
+    /* deadline row */
+    .deadline-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #deadline-input {
+      flex: 1;
+      min-width: 0;
+      border: 0.5px solid #D0CFC8;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: ui-monospace, 'SF Mono', monospace;
+      font-weight: 500;
+      color: #2C2C2A;
+      background: #FAFAF8;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 150ms ease;
+    }
+    #deadline-input:hover, #deadline-input:focus { border-color: #A6A39A; }
+
+    /* deadline quick-preset toggle */
+    .deadline-presets {
+      display: flex;
+      flex-shrink: 0;
+      border: 0.5px solid #D0CFC8;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .deadline-preset {
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #6B6860;
+      cursor: pointer;
+      transition: background 120ms ease, color 120ms ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .deadline-preset + .deadline-preset {
+      border-left: 0.5px solid #D0CFC8;
+    }
+
+    .deadline-preset:hover {
+      background: #F1F0EA;
+      color: #2C2C2A;
+    }
+
+    .deadline-preset.active {
+      background: #2C2C2A;
+      color: #FAFAF8;
+    }
+
+    /* ── Help button in tweaks ─────────────────────────────────────────── */
+    .tweak-help-btn {
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    /* ── Help panel ────────────────────────────────────────────────────── */
+    .help-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 95;
+      width: min(480px, 88vw);
+      max-height: 72vh;
+      background: #FFFFFF;
+      border: 0.5px solid #D0CFC8;
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(44,44,42,.14), 0 4px 14px rgba(44,44,42,.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .help-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px 14px;
+      border-bottom: 0.5px solid #EDECE6;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #2C2C2A;
+      flex-shrink: 0;
+    }
+
+    .help-close {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(44,44,42,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      color: #6B6860;
+      transition: background 150ms ease;
+    }
+    .help-close:hover { background: rgba(44,44,42,0.14); }
+
+    .help-body {
+      overflow-y: auto;
+      padding: 6px 18px 18px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .help-section {
+      padding: 12px 0;
+      border-bottom: 0.5px solid #F0EFE9;
+    }
+    .help-section:last-child { border-bottom: none; }
+
+    .help-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #2C2C2A;
+      margin-bottom: 5px;
+    }
+
+    .help-section-body {
+      font-size: 12px;
+      color: #6B6860;
+      line-height: 1.6;
+      white-space: pre-wrap;
     }
   </style>
 </head>
