@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chaos</title>
+
+  <link rel="stylesheet" href="main.css">
+  <script defer src="main.client.dart.js"></script>
+
+  <style>
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont,
+                   "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Input ─────────────────────────────────────────────────────── */
+    .chaos-input {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: min(440px, 72vw);
+      border: none;
+      outline: none;
+      background: transparent;
+      font: inherit;
+      font-size: 16px;
+      color: #2C2C2A;
+      text-align: center;
+      padding: 10px 14px;
+      letter-spacing: 0.005em;
+      caret-color: #2C2C2A;
+    }
+    .chaos-input::placeholder { color: #B5B3AB; }
+
+    /* ── Pills ─────────────────────────────────────────────────────── */
+    .pill {
+      position: absolute;
+      left: 0; top: 0;
+      background: #FFFFFF;
+      border: 0.5px solid #D0CFC8;
+      border-radius: 999px;
+      color: #2C2C2A;
+      font-size: 13px;
+      line-height: 1;
+      padding: 11px 18px;
+      white-space: nowrap;
+      min-width: 72px;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: grab;
+      touch-action: none;
+      transition: background 220ms ease, border-color 220ms ease,
+                  box-shadow 220ms ease;
+      will-change: transform;
+      transform-origin: center;
+      backface-visibility: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .pill:hover {
+      background: #F1F0EA;
+      border-color: #A6A39A;
+    }
+    .pill.dragging {
+      cursor: grabbing;
+      box-shadow: 0 10px 28px rgba(60,55,30,.10), 0 2px 6px rgba(60,55,30,.06);
+      z-index: 50;
+    }
+    .pill.dying {
+      pointer-events: none;
+      z-index: 60;
+    }
+
+    /* Oldest pill – barely visible pulsing border */
+    .pill.oldest::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: 999px;
+      border: 0.5px solid #A6A39A;
+      opacity: 0;
+      animation: oldestPulse 3.4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    /* Panic / double-click shake — visual handled by Dart's shudder offset */
+    .pill.panic {
+      border-color: #A6A39A;
+    }
+
+    /* ── Done zone ─────────────────────────────────────────────────── */
+    .done-zone {
+      position: fixed;
+      bottom: 36px;
+      right: 36px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(44,44,42,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.85);
+      z-index: 70;
+      pointer-events: none;
+      transition: transform 240ms cubic-bezier(0.34,1.56,0.64,1),
+                  background 240ms ease,
+                  box-shadow 240ms ease;
+      transform-origin: center;
+    }
+    .done-zone.near {
+      transform: scale(1.22);
+      background: rgba(44,44,42,0.98);
+      box-shadow: 0 16px 40px rgba(44,44,42,.22), 0 4px 12px rgba(44,44,42,.14);
+      color: #fff;
+    }
+
+    /* ── Keyframes ─────────────────────────────────────────────────── */
+    @keyframes oldestPulse {
+      0%, 100% { opacity: 0; transform: scale(1); }
+      50%       { opacity: 0.55; transform: scale(1.018); }
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      10%      { transform: translateX(-4px) rotate(-1deg); }
+      20%      { transform: translateX( 4px) rotate( 1deg); }
+      30%      { transform: translateX(-4px) rotate(-1deg); }
+      40%      { transform: translateX( 4px) rotate( 1deg); }
+      50%      { transform: translateX(-3px); }
+      60%      { transform: translateX( 3px); }
+      70%      { transform: translateX(-2px); }
+      80%      { transform: translateX( 2px); }
+      90%      { transform: translateX(-1px); }
+    }
+
+    @keyframes spiralOut {
+      0%   { transform: scale(1)   rotate(0deg)   translateX(0); opacity: 1; }
+      100% { transform: scale(0)   rotate(720deg) translateX(60px); opacity: 0; }
+    }
+
+    @keyframes zonePulse {
+      0%   { transform: scale(1.22); }
+      35%  { transform: scale(1.45); }
+      100% { transform: scale(1);    }
+    }
+
+    /* ── Tweaks toggle ─────────────────────────────────────────────── */
+    #tweaks-toggle {
+      position: fixed;
+      bottom: 60px;
+      left: 36px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(44,44,42,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 70;
+      font-size: 30px;
+      transition: background 180ms ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #tweaks-toggle:hover { background: rgba(44,44,42,0.15); }
+
+    /* ── Tweaks panel ──────────────────────────────────────────────── */
+    #tweaks-panel {
+      position: fixed;
+      bottom: 104px;
+      left: 24px;
+      width: 270px;
+      background: #FFFFFF;
+      border: 0.5px solid #D0CFC8;
+      border-radius: 14px;
+      padding: 16px;
+      z-index: 80;
+      box-shadow: 0 8px 24px rgba(44,44,42,.10), 0 2px 6px rgba(44,44,42,.06);
+    }
+
+    .tweaks-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #2C2C2A;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .tweaks-close {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(44,44,42,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      color: #6B6860;
+      transition: background 150ms ease;
+    }
+    .tweaks-close:hover { background: rgba(44,44,42,0.14); }
+
+    .tweak-section { margin-bottom: 12px; }
+
+    .tweak-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #6B6860;
+      margin-bottom: 5px;
+    }
+
+    .tweak-section input[type="range"] {
+      width: 100%;
+      accent-color: #2C2C2A;
+    }
+
+    .tweak-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 14px;
+      margin-bottom: 10px;
+    }
+
+    .tweak-btn {
+      flex: 1;
+      padding: 7px 0;
+      border-radius: 8px;
+      background: #2C2C2A;
+      color: #FAFAF8;
+      font-size: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: opacity 150ms ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .tweak-btn:hover { opacity: 0.8; }
+
+    .tweak-btn.ghost {
+      background: transparent;
+      border: 0.5px solid #D0CFC8;
+      color: #6B6860;
+    }
+    .tweak-btn.ghost:hover { background: #F1F0EA; opacity: 1; }
+
+    .tweak-hints {
+      font-size: 11px;
+      color: #B5B3AB;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .hint-key {
+      display: inline-block;
+      font-weight: 600;
+      font-size: 10px;
+      font-family: ui-monospace, 'SF Mono', monospace;
+      background: #F1F0EA;
+      border: 0.5px solid #D0CFC8;
+      border-radius: 4px;
+      padding: 1px 4px;
+      color: #2C2C2A;
+    }
+
+    /* ── Hint bubbles ──────────────────────────────────────────────── */
+    @keyframes hintFade {
+      0%    { opacity: 0; transform: translateY(4px); }
+      12%   { opacity: 1; transform: translateY(0);   }
+      68%   { opacity: 1; transform: translateY(0);   }
+      100%  { opacity: 0; transform: translateY(0);   }
+    }
+
+    .hint-bubble {
+      position: fixed;
+      background: rgba(44, 44, 42, 0.80);
+      color: #FAFAF8;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 7px;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 90;
+      animation: hintFade 3.5s ease forwards;
+    }
+  </style>
+</head>
+<body>
+  <!-- Jaspr mounts here -->
+</body>
+</html>
