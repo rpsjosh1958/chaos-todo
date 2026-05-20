@@ -58,7 +58,7 @@ extension on _AppState {
       final fgB = (42 + 213 * p).round().clamp(0, 255);
       el.setAttribute(
         'style',
-        'position:absolute;left:0;top:0;'
+        'position:absolute;left:0;top:0;z-index:75;'
         'background:rgb(255,$bgG,$bgG);'
         'color:rgb($fgR,$fgG,$fgB);'
         'transform:translate3d(${x.toStringAsFixed(1)}px,${y.toStringAsFixed(1)}px,0);'

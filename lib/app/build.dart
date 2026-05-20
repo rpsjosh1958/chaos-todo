@@ -66,6 +66,15 @@ extension on _AppState {
         div(
           id: 'done-zone',
           classes: 'done-zone${_isDoneZoneNear ? ' near' : ''}',
+          events: {
+            'click': (_) {
+              if (_drag != null) return;
+              _rebuild(() {
+                _completedOpen = !_completedOpen;
+                if (_completedOpen) _tweaksOpen = false;
+              });
+            },
+          },
           [
             svg(
               attributes: const {
@@ -118,6 +127,7 @@ extension on _AppState {
 
         if (_tweaksOpen) _buildTweaksPanel(),
         if (_helpOpen) _buildHelpPanel(),
+        if (_completedOpen) _buildCompletedPanel(),
       ],
     );
   }
@@ -325,5 +335,69 @@ extension on _AppState {
       div(classes: 'help-section-title', [Component.text(title)]),
       div(classes: 'help-section-body', [Component.text(body)]),
     ]);
+  }
+
+  // ── Completed tasks panel ─────────────────────────────────────────────────
+
+  Component _buildCompletedPanel() {
+    return div(
+      key: const ValueKey('completed-panel'),
+      classes: 'completed-panel',
+      [
+        div(classes: 'completed-wm', [
+          Component.text(_completedWatermark()),
+        ]),
+
+        div(classes: 'completed-header', [
+          div(classes: 'completed-title', [
+            Component.text('done'),
+            if (_completedTasks.isNotEmpty)
+              span(
+                classes: 'completed-count',
+                [Component.text('${_completedTasks.length}')],
+              ),
+          ]),
+          div(
+            classes: 'completed-close',
+            events: {'click': (_) => _rebuild(() => _completedOpen = false)},
+            [Component.text('×')],
+          ),
+        ]),
+
+        if (_completedTasks.isEmpty)
+          div(classes: 'completed-empty', [
+            Component.text('nothing here yet\ndrag a pill to the ✓ circle to complete a task'),
+          ])
+        else
+          div(classes: 'completed-list', [
+            for (final ct in _completedTasks.reversed)
+              div(classes: 'completed-item', [
+                div(classes: 'completed-item-text', [Component.text(ct.text)]),
+                div(classes: 'completed-item-time', [Component.text(_timeAgo(ct.completedAtMs))]),
+              ]),
+          ]),
+      ],
+    );
+  }
+
+  String _completedWatermark() {
+    final n = _completedTasks.length;
+    if (n == 0) return 'nothing here yet';
+    if (n == 1) return 'baby steps';
+    if (n < 5) return 'getting somewhere';
+    if (n < 10) return 'actually doing it';
+    if (n < 20) return 'you\'re unstoppable';
+    return 'legendary behaviour';
+  }
+
+  String _timeAgo(int ms) {
+    final diff = DateTime.now().millisecondsSinceEpoch - ms;
+    final minutes = diff ~/ 60000;
+    if (minutes < 1) return 'just now';
+    if (minutes == 1) return '1 min ago';
+    if (minutes < 60) return '$minutes min ago';
+    final hours = minutes ~/ 60;
+    if (hours == 1) return '1 hour ago';
+    return '$hours hours ago';
   }
 }

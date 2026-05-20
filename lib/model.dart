@@ -74,6 +74,13 @@ class Task {
   }
 }
 
+class CompletedTask {
+  final String text;
+  final int completedAtMs;
+
+  CompletedTask({required this.text, required this.completedAtMs});
+}
+
 class DragState {
   final Task task;
   final double offsetX;

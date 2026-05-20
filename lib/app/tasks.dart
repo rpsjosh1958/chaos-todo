@@ -70,9 +70,10 @@ extension on _AppState {
   }
 
   void _startDying(Task t, double pillCx, double pillCy) {
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
     final (zx, zy) = _zoneCenter;
     t.isDying = true;
-    t.dyingStartMs = DateTime.now().millisecondsSinceEpoch;
+    t.dyingStartMs = nowMs;
     t.dyingToX = zx;
     t.dyingToY = zy;
     t.dyingStartAngle = atan2(pillCy - zy, pillCx - zx);
@@ -80,5 +81,6 @@ extension on _AppState {
     t.dyingInitialW = t.renderWidth;
     t.dyingInitialScale = 1.0;
     t.dyingInitialP = t.pillGrowthFraction(_deadline);
+    _completedTasks.add(CompletedTask(text: t.text, completedAtMs: nowMs));
   }
 }

@@ -44,6 +44,10 @@ class _AppState extends State<App> {
   int _lastClassSyncMs = 0;
   final _rng = Random();
 
+  // ── Completed tasks ───────────────────────────────────────────────────────
+  final List<CompletedTask> _completedTasks = [];
+  bool _completedOpen = false;
+
   // ── UI state ──────────────────────────────────────────────────────────────
   bool _tweaksOpen = false;
   bool _helpOpen = false;

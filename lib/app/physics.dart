@@ -16,6 +16,7 @@ extension on _AppState {
     el.setAttribute(
       'style',
       'position:absolute;left:0;top:0;'
+      '${t.isDragging ? "z-index:75;" : ""}'
       'background:rgb(255,$bgG,$bgG);'
       'color:rgb($fgR,$fgG,$fgB);'
       'transform:translate3d(${(t.x + ox).toStringAsFixed(1)}px,${(t.y + oy).toStringAsFixed(1)}px,0);'
@@ -33,20 +34,17 @@ extension on _AppState {
     final rad = t.dyingStartRadius * (1 - eased);
     final cx = t.dyingToX + cos(ang) * rad;
     final cy = t.dyingToY + sin(ang) * rad;
-    final scaleVal = (1.0 - eased).clamp(0.0, 1.0);
+    // Pop: briefly puffs up then spirals to zero
+    final scaleVal = (u < 0.15
+        ? 1.0 + u * 1.0
+        : 1.15 * (1.0 - (u - 0.15) / 0.85)).clamp(0.0, 2.0);
     final tx = cx - t.dyingInitialW / 2;
     final ty = cy - Task.pillHeight / 2;
     final opacity = (1.0 - u).clamp(0.0, 1.0);
-    final p = t.dyingInitialP;
-    final bgG = (255 - 217 * p).round().clamp(0, 255);
-    final fgR = (44 + 211 * p).round().clamp(0, 255);
-    final fgG = (44 + 211 * p).round().clamp(0, 255);
-    final fgB = (42 + 213 * p).round().clamp(0, 255);
     el.setAttribute(
       'style',
-      'position:absolute;left:0;top:0;pointer-events:none;z-index:60;'
-      'background:rgb(255,$bgG,$bgG);'
-      'color:rgb($fgR,$fgG,$fgB);'
+      'position:absolute;left:0;top:0;pointer-events:none;z-index:75;'
+      'background:#22C55E;color:#FFFFFF;'
       'transform:translate3d(${tx.toStringAsFixed(1)}px,${ty.toStringAsFixed(1)}px,0)'
       ' scale(${scaleVal.toStringAsFixed(3)});'
       'opacity:${opacity.toStringAsFixed(3)};',
